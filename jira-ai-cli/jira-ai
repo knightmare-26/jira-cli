@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+import os
+
+# A helper function to call the Gemini CLI
+def call_gemini(prompt):
+    """
+    Calls the Gemini CLI with a given prompt and returns the output.
+    Note: This is a placeholder for the actual tool call.
+    In a real scenario, this would be a direct API call to the Gemini API.
+    For this implementation, we assume the `gemini` CLI tool is available.
+    """
+    try:
+        # This is a mock implementation.
+        if "my open tickets" in prompt:
+            return 'jira issue list --jql "assignee = currentUser() and resolution = Unresolved" --order-by priority'
+        elif "blockers" in prompt:
+            # Making this query cross-project as well
+            return 'jira issue list --jql "priority = Blocker and project IS NOT EMPTY"'
+        else:
+            # This simulates Gemini not knowing what to do.
+            return 'echo "Sorry, I could not understand the request."' 
+
+    except subprocess.CalledProcessError as e:
+        return f"echo 'Error calling Gemini CLI: {e}'"
+    except FileNotFoundError:
+        return "echo 'Error: `gemini` command not found. Please ensure it is in your PATH.'"
+
+def generate_command_with_gemini(query):
+    """
+    Uses the Gemini CLI to translate a natural language query into a shell command.
+    """
+    prompt = f"""You are an expert shell command generator. Your task is to convert a user's request into a single, executable command using 'jira-cli'. Assume the user is authenticated. Do not include any explanation, just the command.
+
+User Request: "{query}"
+"""
+    
+    # This is still a simulation of the call to the gemini CLI for safety and predictability in this context.
+    # The 'call_gemini' function abstracts the (simulated) interaction.
+    command = call_gemini(prompt)
+    return command
+
+def handle_view_command(query):
+    """
+    Handles the 'view' command.
+    1. Generates a command from natural language using Gemini.
+    2. Asks for user confirmation.
+    3. Executes the command.
+    """
+    print(f"Received 'view' command with query: '{query}'")
+    
+    generated_command = generate_command_with_gemini(query)
+    
+    print(f"\nI am about to run the following command:")
+    print(f"  > {generated_command}")
+    
+    try:
+        confirm = input("Execute? (y/n): ")
+    except EOFError:
+        # This can happen if the script is run in a non-interactive environment
+        print("\nNon-interactive mode detected. Aborting.")
+        return
+
+    if confirm.lower() == 'y':
+        print("\n--- Executing Command ---")
+        # Using shell=True for simplicity to execute the command string directly.
+        # For production code, it's safer to parse the command and arguments
+        # to avoid shell injection vulnerabilities if the generated command is complex.
+        subprocess.run(generated_command, shell=True, check=True)
+        print("-------------------------\n")
+    else:
+        print("Aborted.")
+
+def main():
+    """Main entry point for the jira-ai CLI tool."""
+    args = sys.argv[1:]
+    
+    if len(args) < 2:
+        print("Usage: jira-ai <command> \"<natural language query>\"")
+        print("Commands: view, create, sync, report, config")
+        sys.exit(1)
+        
+    command = args[0]
+    query = " ".join(args[1:])
+    
+    if command == "view":
+        handle_view_command(query)
+    elif command in ["create", "sync", "report", "config"]:
+        print(f"Command '{command}' is not implemented yet.")
+    else:
+        print(f"Unknown command: {command}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
