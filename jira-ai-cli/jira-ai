@@ -3,7 +3,7 @@ import sys
 import subprocess
 import os
 
-# A helper function to call the Gemini CLI
+# A helper function to call the Gemini CLI ab c
 def call_gemini(prompt):
     """
     Calls the Gemini CLI with a given prompt and returns the output.
