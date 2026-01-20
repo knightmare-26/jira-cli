@@ -1,0 +1,21 @@
+allowed_actions:
+  - create_ticket
+  - transition_ticket
+  - add_comment
+
+allowed_transitions:
+  IN PROGRESS:
+    - BRANCH CUT
+  BRANCH CUT:
+    - IN QA REGRESSION
+  IN QA REGRESSION:
+    - VERIFIED
+  VERIFIED:
+    - DONE
+
+blocked_states:
+  - DONE
+
+similarity:
+  lookback_days: 60
+  min_similarity: 0.75
