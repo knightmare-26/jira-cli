@@ -1,2 +1,2 @@
 [console_scripts]
-jira-ai = jira_ai_cli.cli:cli
+jira-cli = jira_ai_cli.cli:cli

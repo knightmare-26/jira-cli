@@ -1,24 +1,29 @@
 import click
+import json
 from typing import List, Dict, Any
 
 from .github_integration import GitHubIntegration
 from .jira_integration import JiraIntegration
 from .llm_integration import LLMIntegration
 from .policy_engine import PolicyEngine
+from .ux import AnimationManager
 
 class ActionOrchestrator:
     def __init__(self, github_integrator: GitHubIntegration, jira_integrator: JiraIntegration, 
-                 llm_integrator: LLMIntegration, policy_engine: PolicyEngine):
+                 llm_integrator: LLMIntegration, policy_engine: PolicyEngine, anim_manager: AnimationManager):
         self.github_integrator = github_integrator
         self.jira_integrator = jira_integrator
         self.llm_integrator = llm_integrator
         self.policy_engine = policy_engine
+        self.anim = anim_manager
 
     def suggest_actions(self, pr: int = None, commit: str = None, branch: str = None) -> List[Dict[str, Any]]:
         """
         Orchestrates the process of gathering context, getting LLM suggestions,
         applying policy rules, and preparing actions for user approval.
         """
+        # 1. Gather GitHub context
+        self.anim.start("Loading GitHub context...")
         github_context = None
         if pr:
             github_context = self.github_integrator.get_pull_request_context(pr)
@@ -28,26 +33,41 @@ class ActionOrchestrator:
             github_context = self.github_integrator.get_branch_context(branch)
 
         if not github_context:
-            click.echo("Failed to retrieve GitHub context.", err=True)
+            self.anim.fail("Failed to retrieve GitHub context.")
             return []
+        self.anim.succeed("GitHub context loaded.")
 
+        # 2. Search Jira for similar tickets
+        self.anim.start("Searching Jira for similar tickets...")
         jira_issues = []
         if self.jira_integrator.jira:
             search_query_text = github_context.get("title") or github_context.get("message")
             if search_query_text:
                 search_query = f'text ~ "{search_query_text}"'
                 jira_issues = self.jira_integrator.search_issues(search_query, max_results=5)
+            self.anim.succeed(f"Found {len(jira_issues)} potential Jira issue(s).")
+        else:
+            self.anim.fail("Jira integration not configured. Skipping search.")
 
+        # 3. Call LLM for analysis and suggestions
+        self.anim.start("Asking the LLM for suggestions...")
         llm_prompt_data = {
             "github_context": github_context,
             "jira_issues_found": [{"key": issue.key, "summary": issue.fields.summary, "description": issue.fields.description} for issue in jira_issues],
-            "request": "Propose Jira actions (e.g., create a new ticket, use an existing one, suggest a transition) based on the provided GitHub and Jira context. Respond in the specified JSON format."
+            "request": "Propose Jira actions based on the provided context. Respond in the specified JSON format."
         }
         llm_prompt = json.dumps(llm_prompt_data)
         llm_suggestions = self.llm_integrator.call_gemini(llm_prompt)
 
-        # Apply policy to filter/validate LLM suggestions
+        if not llm_suggestions or not llm_suggestions.get("actions"):
+            self.anim.fail("LLM did not provide any suggestions.")
+            return []
+        self.anim.succeed("LLM analysis complete.")
+
+        # 4. Apply policy to filter/validate LLM suggestions
+        self.anim.start("Applying policy rules...")
         filtered_suggestions = self._apply_policy_rules(llm_suggestions)
+        self.anim.succeed("Policy rules applied.")
         
         return filtered_suggestions
 

@@ -6,6 +6,7 @@ from .llm_integration import LLMIntegration
 from .policy_engine import PolicyEngine
 from .action_orchestrator import ActionOrchestrator
 from .config_manager import ConfigManager
+from .ux import AnimationManager
 
 @click.group()
 def cli():
@@ -46,17 +47,21 @@ def config():
 @click.option('--pr', type=int, help='GitHub Pull Request number.')
 @click.option('--commit', type=str, help='GitHub Commit reference (SHA).')
 @click.option('--branch', type=str, help='GitHub Branch name.')
-def suggest(pr, commit, branch):
+@click.option('--no-animation', is_flag=True, help='Disables CLI animations and spinners.')
+def suggest(pr, commit, branch, no_animation):
     """
     Suggests Jira actions based on GitHub context.
     """
+    anim_manager = AnimationManager(no_animation=no_animation)
+    anim_manager.show_banner()
+
     # Ensure only one of --pr, --commit, or --branch is provided
     provided_options = sum([1 for x in [pr, commit, branch] if x is not None])
     if provided_options > 1:
-        click.echo("Error: Please provide only one of --pr, --commit, or --branch.", err=True)
+        anim_manager.fail("Error: Please provide only one of --pr, --commit, or --branch.")
         return
     elif provided_options == 0:
-        click.echo("Error: Please provide at least one of --pr, --commit, or --branch.", err=True)
+        anim_manager.fail("Error: Please provide at least one of --pr, --commit, or --branch.")
         return
 
     # Initialize all components
@@ -64,19 +69,14 @@ def suggest(pr, commit, branch):
     jira_integrator = JiraIntegration()
     llm_integrator = LLMIntegration()
     policy_engine = PolicyEngine(policy_file_path="jira-ai-cli/policy.yaml") # Specify path relative to project root
-
-    # Policy Engine Integration (Moved here to always show policy)
-    click.echo("\n--- Policy Engine Integration ---")
-    click.echo(f"Allowed actions: {policy_engine.get_allowed_actions()}")
-    click.echo(f"Min similarity: {policy_engine.get_similarity_threshold()}")
-    click.echo("---------------------------------")
     
     # Initialize and run the Action Orchestrator
     orchestrator = ActionOrchestrator(
         github_integrator=github_integrator,
         jira_integrator=jira_integrator,
         llm_integrator=llm_integrator,
-        policy_engine=policy_engine
+        policy_engine=policy_engine,
+        anim_manager=anim_manager
     )
 
     suggested_actions = orchestrator.suggest_actions(pr=pr, commit=commit, branch=branch)
@@ -84,7 +84,7 @@ def suggest(pr, commit, branch):
     if suggested_actions:
         orchestrator.present_and_execute_actions(suggested_actions)
     else:
-        click.echo("Orchestrator did not suggest any actions after applying policies.", err=True)
+        anim_manager.fail("Orchestrator did not suggest any actions after applying policies.")
 
 if __name__ == '__main__':
     cli()

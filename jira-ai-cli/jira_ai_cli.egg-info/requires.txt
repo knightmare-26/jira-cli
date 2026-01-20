@@ -2,6 +2,7 @@ click
 requests
 jira
 PyYAML
+halo
 
 [dev]
 pytest
