@@ -1,0 +1,7 @@
+click
+requests
+jira
+PyYAML
+
+[dev]
+pytest
