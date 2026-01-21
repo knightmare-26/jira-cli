@@ -59,10 +59,10 @@ def suggest(pr, commit, branch, no_animation):
     provided_options = sum([1 for x in [pr, commit, branch] if x is not None])
     if provided_options > 1:
         anim_manager.fail("Error: Please provide only one of --pr, --commit, or --branch.")
-        return
+        raise click.Abort()
     elif provided_options == 0:
         anim_manager.fail("Error: Please provide at least one of --pr, --commit, or --branch.")
-        return
+        raise click.Abort()
 
     # Initialize all components
     github_integrator = GitHubIntegration()

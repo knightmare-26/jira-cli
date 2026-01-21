@@ -112,9 +112,9 @@ class ActionOrchestrator:
             if summary and description:
                 new_issue = self.jira_integrator.create_issue(project, summary, description, issue_type, labels)
                 if new_issue:
-                    click.echo(f"Successfully created Jira ticket: {new_issue.key}", fg='green')
+                    self.anim.succeed(f"Successfully created Jira ticket: {new_issue.key}")
                     return True
-            click.echo("Failed to create Jira ticket.", fg='red')
+            self.anim.fail("Failed to create Jira ticket.")
             return False
         elif action_type == "transition_ticket":
             issue_key = action.get("issue_key")
@@ -122,27 +122,27 @@ class ActionOrchestrator:
             if issue_key and transition_name:
                 if self.policy_engine.is_transition_allowed(self.jira_integrator.get_issue_status(issue_key), transition_name): # Need to get current status first
                     if self.jira_integrator.transition_issue(issue_key, transition_name):
-                        click.echo(f"Successfully transitioned Jira ticket {issue_key} to {transition_name}", fg='green')
+                        self.anim.succeed(f"Successfully transitioned Jira ticket {issue_key} to {transition_name}")
                         return True
                 else:
-                    click.echo(f"Policy: Transition from current status to '{transition_name}' for {issue_key} is not allowed.", fg='red')
-            click.echo("Failed to transition Jira ticket.", fg='red')
+                    self.anim.fail(f"Policy: Transition from current status to '{transition_name}' for {issue_key} is not allowed.")
+            self.anim.fail("Failed to transition Jira ticket.")
             return False
         elif action_type == "add_comment":
             issue_key = action.get("issue_key")
             comment_body = action.get("comment_body")
             if issue_key and comment_body:
                 if self.jira_integrator.add_comment(issue_key, comment_body):
-                    click.echo(f"Successfully added comment to Jira ticket {issue_key}", fg='green')
+                    self.anim.succeed(f"Successfully added comment to Jira ticket {issue_key}")
                     return True
-            click.echo("Failed to add comment to Jira ticket.", fg='red')
+            self.anim.fail("Failed to add comment to Jira ticket.")
             return False
         elif action_type == "use_existing_ticket":
             issue_key = action.get("issue_key")
-            click.echo(f"Acknowledged suggestion to use existing Jira ticket: {issue_key}", fg='cyan')
+            self.anim.succeed(f"Acknowledged suggestion to use existing Jira ticket: {issue_key}")
             return True # This action type is just a suggestion, no execution needed.
         else:
-            click.echo(f"Unknown action type: {action_type}", fg='red')
+            self.anim.fail(f"Unknown action type: {action_type}")
             return False
 
     def present_and_execute_actions(self, suggested_actions: List[Dict[str, Any]]):
@@ -150,7 +150,7 @@ class ActionOrchestrator:
         Presents suggested actions to the user for approval and executes them if approved.
         """
         if not suggested_actions:
-            click.echo("No actions to present.", fg='yellow')
+            self.anim.succeed("No actions to present.")
             return
 
         click.echo("\n--- Proposed Jira Actions ---")
@@ -165,9 +165,9 @@ class ActionOrchestrator:
                 if edited_json:
                     try:
                         action = json.loads(edited_json)
-                        click.echo("Action updated after editing.")
+                        click.echo(click.style("Action updated after editing.", fg='green'))
                     except json.JSONDecodeError:
-                        click.echo("Invalid JSON provided. Using original action.", fg='red')
+                        self.anim.fail("Invalid JSON provided. Using original action.")
 
             if action.get("type") == "use_existing_ticket":
                 # For 'use_existing_ticket', it's a suggestion, not an execution.
@@ -175,10 +175,10 @@ class ActionOrchestrator:
                 if click.confirm(f"Acknowledge suggestion to use existing ticket {action.get('issue_key')}?"):
                     self.execute_action(action) # Will just print acknowledgment
                 else:
-                    click.echo("Suggestion to use existing ticket rejected.")
+                    self.anim.fail("Suggestion to use existing ticket rejected.")
             else:
                 if click.confirm("Approve this action for execution?"):
                     self.execute_action(action)
                 else:
-                    click.echo("Action rejected by user.")
+                    self.anim.fail("Action rejected by user.")
         click.echo("\n--- End of Proposed Actions ---")
