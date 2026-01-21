@@ -16,14 +16,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Copy project files
 WORKDIR /app
-COPY pyproject.toml ./
+COPY . /app/
 
 # Install dependencies into the virtual environment
 # We install them here so they are cached by Docker
 RUN pip install --no-cache-dir -e ".[dev]"
-
-# Copy the rest of the application code
-COPY . .
 
 
 # ---- Final Stage ----
