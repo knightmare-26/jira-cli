@@ -6,5 +6,6 @@ Requires-Dist: click
 Requires-Dist: requests
 Requires-Dist: jira
 Requires-Dist: PyYAML
+Requires-Dist: halo
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
