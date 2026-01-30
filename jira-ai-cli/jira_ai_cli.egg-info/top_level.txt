@@ -1,1 +1,0 @@
-jira_ai_cli

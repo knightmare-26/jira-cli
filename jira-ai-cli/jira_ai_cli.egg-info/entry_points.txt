@@ -1,2 +1,0 @@
-[console_scripts]
-jira-cli = jira_ai_cli.cli:cli
