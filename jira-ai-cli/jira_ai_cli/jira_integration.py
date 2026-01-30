@@ -46,14 +46,14 @@ class JiraIntegration:
         Returns a list of issue objects.
         """
         if not self.jira:
-            return None
+            return [] # Return empty list if Jira is not initialized
         click.echo(f"Searching Jira with JQL: {jql_query}", err=False)
         try:
             issues = self.jira.search_issues(jql_query, maxResults=max_results)
             return issues
         except Exception as e:
             click.echo(f"Error searching Jira issues: {e}", err=True)
-            return None
+            return [] # Return empty list on error
 
     def create_issue(self, project, summary, description, issue_type="Task", labels=None):
         """

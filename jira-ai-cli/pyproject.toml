@@ -14,7 +14,7 @@ dependencies = [
 jira-cli = "jira_ai_cli.cli:cli"
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "pyinstaller"]
 
 [build-system]
 requires = ["setuptools>=61.0"]

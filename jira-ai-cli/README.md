@@ -61,9 +61,24 @@ The `jira-cli` is designed to be run as a Docker container.
     *   `-e CI`: This environment variable is used to automatically disable animations in CI/CD environments.
     *   `your-registry/your-username/jira-cli:latest`: The name of the Docker image.
 
+### C. Binary Installation (Standalone Executable)
+
+For a standalone executable that doesn't require Python or Docker to be installed directly, you can download pre-built binaries from the project's [GitHub Releases page](https://github.com/your-username/jira-ai-cli/releases). These binaries are automatically built and attached to each new release via GitHub Actions.
+
+*Note: The LLM functionality (using Gemini) still requires the `gemini` CLI tool to be installed and configured on your system, as this binary bundles the Python application but not external CLI dependencies.*
+
+1.  **Download the appropriate executable:**
+    *   Find the `jira-cli` (or `jira-cli.exe` for Windows) for your operating system.
+2.  **Place the executable in your PATH:**
+    *   Move the downloaded `jira-cli` binary to a directory that is included in your system's `PATH` (e.g., `/usr/local/bin` on Linux/macOS, or a custom `bin` directory for Windows).
+3.  **Ensure executable permissions (Linux/macOS):**
+    ```bash
+    chmod +x /usr/local/bin/jira-cli
+    ```
+
 ## Configuration
 
-Before using the CLI, you need to configure it with your Jira and GitHub credentials. The CLI includes an interactive command (`config`) to guide you through this setup. This configuration will be saved persistently in `~/.jira-cli/config.json` on your local machine, thanks to the mounted Docker volume.
+Before using the CLI, you need to configure it with your Jira and GitHub credentials. The CLI includes an interactive command (`config`) to guide you through this setup. Your credentials will be saved persistently in `~/.jira-cli/config.json`.
 
 1.  **Run the `config` command:**
 

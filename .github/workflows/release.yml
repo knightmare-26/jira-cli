@@ -1,0 +1,59 @@
+name: Release Binary
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Triggers on new tags like v1.0.0
+
+jobs:
+  build_and_release:
+    name: Build & Release for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9' # Use the Python version compatible with your project
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Build executable with PyInstaller (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: pyinstaller --name jira-cli --onefile --add-data "jira_ai_cli:jira_ai_cli" jira_ai_cli/cli.py
+      working-directory: ./jira-ai-cli
+
+    - name: Build executable with PyInstaller (macOS)
+      if: matrix.os == 'macos-latest'
+      run: pyinstaller --name jira-cli --onefile --add-data "jira_ai_cli:jira_ai_cli" jira_ai_cli/cli.py
+      working-directory: ./jira-ai-cli
+
+    - name: Build executable with PyInstaller (Windows)
+      if: matrix.os == 'windows-latest'
+      run: pyinstaller --name jira-cli --onefile --add-data "jira_ai_cli:jira_ai_cli" jira_ai_cli/cli.py
+      working-directory: ./jira-ai-cli
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jira-cli-executables-${{ matrix.os }}
+        path: jira-ai-cli/dist/jira-cli* # Adjust for Windows .exe
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest' # Only create release once
+      uses: softprops/action-gh-release@v1
+      with:
+        files: jira-ai-cli/dist/jira-cli* # This will attach the executable from the ubuntu build
+        prerelease: false # Change to true for pre-release versions
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
