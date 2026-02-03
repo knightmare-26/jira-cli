@@ -15,6 +15,7 @@ To effectively utilize the Aera Jira AI CLI, the following external tools must b
 -   **Terminal Access**: A command-line interpreter (e.g., PowerShell, Command Prompt on Windows; Terminal on macOS/Linux).
 -   **Git**: A version control system essential for repository operations. Download Git from [git-scm.com/downloads](https://git-scm.com/downloads).
 -   **Gemini CLI**: The official Gemini command-line tool is required for AI functionality and communication with the Gemini AI model. Refer to the [official Gemini documentation](https://ai.google.dev/gemini-api/docs/get-started/python) for installation and configuration instructions.
+-   **jq (Optional)**: A command-line JSON processor. Required only if you plan to use the direct terminal download method for the binary. Install using `brew install jq` (macOS) or `sudo apt-get install jq` (Linux).
 
 ## Installation
 
@@ -25,10 +26,48 @@ The Aera Jira AI CLI offers two primary installation methods:
 This method provides a standalone executable, eliminating the need for Python or other language-specific dependencies.
 
 1.  **Download the Executable:**
-    Access the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases) to download the pre-compiled binary. The Releases page is recommended as it facilitates the selection of the correct executable for your operating system (Linux, macOS, or Windows) and provides associated release information.
-    *   **Linux:** `Aera-Jira-CLI-linux`
-    *   **macOS:** `Aera-Jira-CLI-macos`
-    *   **Windows:** `Aera-Jira-CLI-windows.exe`
+    You can either access the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases) or download directly from your terminal:
+
+    *   **From GitHub Releases Page (Recommended for most users):**
+        This page facilitates the selection of the correct executable for your operating system (Linux, macOS, or Windows) and provides associated release information.
+        *   **Linux:** `Aera-Jira-CLI-linux`
+        *   **macOS:** `Aera-Jira-CLI-macos`
+        *   **Windows:** `Aera-Jira-CLI-windows.exe`
+
+    *   **Directly from Terminal (Requires `curl` and `jq`):**
+        This command will attempt to download the latest binary for your current operating system.
+        \`\`\`bash
+        REPO_OWNER="elijahdsouza-aera"
+        REPO_NAME="jira-cli"
+        CLI_NAME="Aera-Jira-CLI"
+        ASSET_PATTERN=""
+
+        OS_TYPE="$(uname -s)"
+        case "$OS_TYPE" in
+          Linux*)  ASSET_PATTERN="${CLI_NAME}-linux" ;;
+          Darwin*) ASSET_PATTERN="${CLI_NAME}-macos" ;;
+          MSYS_NT*) ASSET_PATTERN="${CLI_NAME}-windows.exe" ;; # Git Bash, Cygwin on Windows
+          *)       echo "Unsupported OS: $OS_TYPE"; exit 1 ;;
+        esac
+
+        LATEST_RELEASE_URL=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" | jq -r ".assets[] | select(.name | contains(\"$ASSET_PATTERN\")) | .browser_download_url")
+
+        if [ -z "$LATEST_RELEASE_URL" ]; then
+          echo "Error: Could not find latest release asset matching pattern '$ASSET_PATTERN' for $OS_TYPE."
+          exit 1
+        fi
+
+        FILENAME=$(basename "$LATEST_RELEASE_URL")
+        echo "Downloading $FILENAME from $LATEST_RELEASE_URL"
+        curl -LJO "$LATEST_RELEASE_URL"
+        echo "Download complete. File saved as $FILENAME"
+
+        if [ "$OS_TYPE" = "Linux" ] || [ "$OS_TYPE" = "Darwin" ]; then
+          chmod +x "$FILENAME"
+          echo "Set execute permissions for $FILENAME"
+        fi
+        \`\`\`
+
 
 2.  **Add to System PATH:**
     Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location. This step is recommended for convenience, allowing you to run the `Aera-Jira-CLI` command without specifying its full path every time.
