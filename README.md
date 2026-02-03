@@ -60,6 +60,28 @@ This method is suitable for developers, contributors, or users who prefer to ope
     pip install -e .
     ```
 
+### C. Docker Installation
+
+For a containerized and reproducible environment, you can use Docker.
+
+1.  **Pull the Docker Image:**
+    *(Replace `your-registry/your-username` with the actual path to your Docker image, e.g., `ghcr.io/yourusername/aera-jira-cli`)*
+    ```bash
+    docker pull your-registry/your-username/aera-jira-cli:latest
+    ```
+2.  **Create an Alias for Easy Usage:**
+    Add the following alias to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.profile`) and then reload your shell configuration (e.g., `source ~/.zshrc`). This allows you to use `Aera-Jira-CLI` like a native command.
+    ```bash
+    alias Aera-Jira-CLI='docker run --rm -it \
+      -v ~/.jira-cli:/config \
+      -v "$(pwd)":/work \
+      -e CI \
+      your-registry/your-username/aera-jira-cli:latest'
+    ```
+    *   `-v ~/.jira-cli:/config`: Mounts your local `~/.jira-cli` directory into the container to persist your configuration across runs.
+    *   `-v "$(pwd)":/work`: Mounts your current working directory into the container, allowing the CLI to access local files if needed.
+    *   `-e CI`: An environment variable to automatically disable CLI animations in CI/CD environments.
+
 ## Configuration
 
 To establish connectivity with Jira and GitHub, the CLI requires specific credentials, which are securely stored locally on your machine.
@@ -68,7 +90,7 @@ To establish connectivity with Jira and GitHub, the CLI requires specific creden
     ```bash
     Aera-Jira-CLI config
     ```
-    *For source installations, utilize `jira-cli config`.*
+    *For source installations, utilize `jira-cli config`. If using the Docker alias, the command is the same as binary installation.*
 
 2.  **Provide Credentials:**
     The utility will prompt for the following information:
@@ -90,7 +112,7 @@ To obtain AI-driven suggestions for a GitHub pull request (e.g., PR #123):
 ```bash
 Aera-Jira-CLI suggest --pr 123
 ```
-*For source installations, utilize `jira-cli suggest --pr 123`.*
+*For source installations, utilize `jira-cli suggest --pr 123`. If using the Docker alias, the command is the same as binary installation.*
 
 The CLI will analyze the pull request and propose relevant Jira actions, which can then be approved or rejected.
 
