@@ -8,34 +8,40 @@ Tired of manually creating Jira tickets from your GitHub activity? The Aera Jira
 -   **Suggest Actions**: It suggests relevant Jira actions, like creating a new ticket or updating an existing one.
 -   **Automate Tedious Tasks**: It can create tickets, add comments, and transition issues for you, saving you time and effort.
 
+## Essential Prerequisites (Before You Start!)
+
+Before you can install and use the Aera Jira AI CLI, you need to ensure you have these fundamental tools already installed on your computer. The Aera Jira AI CLI is a standalone program, but it relies on these external programs to function correctly.
+
+-   **A Terminal**: This is the command-line interface on your computer. You'll use it to type commands.
+    *   **macOS**: Look for the "Terminal" app.
+    *   **Windows**: Use "PowerShell" or "Command Prompt".
+    *   **Linux**: Your distribution will likely have a pre-installed terminal application.
+-   **Git**: This is a tool for downloading files from GitHub (even if you're installing the binary, Git is often needed for other tasks and is a good tool to have). If you don't have it, you can [download and install it here](https://git-scm.com/downloads).
+-   **Gemini CLI**: For the AI functionality (which is what makes this CLI smart!), you need the official `gemini` command-line tool installed and configured on your system. This is crucial for the CLI to communicate with the Gemini AI model. Follow the [official Gemini documentation](https://ai.google.dev/gemini-api/docs/get-started/python) to set it up.
+
 ## Installation and Setup Guide
 
 This guide will walk you through setting up and using the Aera Jira AI CLI.
 
-### Step 1: Prerequisites
-
-Before you begin, you'll need a couple of things:
-
--   **A Terminal**: This is the command-line interface on your computer. On macOS, you can use the "Terminal" app. On Windows, you can use "PowerShell" or "Command Prompt".
--   **Git**: A tool for downloading files from GitHub. If you don't have it, you can [download it here](https://git-scm.com/downloads).
--   **Gemini CLI**: For the AI functionality, you need the `gemini` command-line tool installed and configured on your system. Follow the official Gemini documentation to set it up.
-
-### Step 2: Install the Aera Jira AI CLI
+### Install the Aera Jira AI CLI
 
 You have two main options for installation:
 
 #### A. Binary Installation (Recommended for most users)
 
-This is the easiest way to get started as it doesn't require Python or other dependencies.
+This is the easiest way to get started as it doesn't require you to install Python or other programming dependencies. The binary is a self-contained executable program.
 
 1.  **Download the executable:**
-    Go to the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases) and download the appropriate file for your operating system:
-    *   **Linux:** `Aera-Jira-CLI-linux`
-    *   **macOS:** `Aera-Jira-CLI-macos`
-    *   **Windows:** `Aera-Jira-CLI-windows.exe`
+    Go to the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases).
+    *   **Why the releases page?** This page simplifies the process by letting you easily find the correct version of the Aera Jira AI CLI for your specific operating system (Linux, macOS, or Windows). It also provides important release notes and details, ensuring you get the right file.
+    *   Download the appropriate file for your operating system:
+        *   **Linux:** `Aera-Jira-CLI-linux`
+        *   **macOS:** `Aera-Jira-CLI-macos`
+        *   **Windows:** `Aera-Jira-CLI-windows.exe`
 
 2.  **Place the executable in your PATH:**
-    Move the downloaded file to a directory that is included in your system's `PATH`. Common locations are `/usr/local/bin` (Linux/macOS) or a custom `bin` directory that you've added to your Windows `PATH` environment variable. This allows you to run the command from any directory.
+    Moving the downloaded file to a directory included in your system's `PATH` allows you to run the command from any location in your terminal without typing its full path.
+    *   **Common locations:** `/usr/local/bin` (Linux/macOS) or a custom `bin` directory that you've added to your Windows `PATH` environment variable.
 
 3.  **Ensure executable permissions (Linux/macOS only):**
     Open your terminal, navigate to where you saved the file, and run:
@@ -43,9 +49,9 @@ This is the easiest way to get started as it doesn't require Python or other dep
     chmod +x /path/to/Aera-Jira-CLI-macos # or -linux
     ```
 
-#### B. Source Installation (for Developers)
+#### B. Source Installation (for Developers or Advanced Users)
 
-If you plan to contribute to the project or prefer to run directly from Python source, follow these steps:
+If you plan to contribute to the project, need to modify the code, or prefer to run directly from Python source, follow these steps:
 
 1.  **Clone the repository:**
     Open your terminal and run:
@@ -54,7 +60,8 @@ If you plan to contribute to the project or prefer to run directly from Python s
     cd jira-cli
     ```
 2.  **Install the CLI:**
-    Install the package using `pip`. This command will also install all the required Python dependencies.
+    Make sure you have Python installed (`python --version` or `python3 --version`). If not, [download Python here](https://www.python.org/downloads/).
+    Install the package using `pip` (Python's package installer). This command will also install all the required Python dependencies.
     ```bash
     pip install .
     ```
@@ -72,7 +79,7 @@ To connect to Jira and GitHub, the CLI needs your credentials. Don't worry, they
     ```bash
     Aera-Jira-CLI config
     ```
-    If you installed from source, you'll use `jira-cli config` instead.
+    *If you installed from source, you'll use `jira-cli config` instead.*
 
 2.  The tool will then prompt you for the following information:
 
@@ -94,7 +101,7 @@ Let's say you've just created a pull request with the number 123. You can ask th
 ```bash
 Aera-Jira-CLI suggest --pr 123
 ```
-If you installed from source, you'll use `jira-cli suggest --pr 123` instead.
+*If you installed from source, you'll use `jira-cli suggest --pr 123` instead.*
 
 The CLI will analyze the pull request and suggest relevant Jira actions. You can then approve or reject these suggestions.
 
