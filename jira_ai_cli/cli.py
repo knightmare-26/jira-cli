@@ -1,5 +1,6 @@
 import click
 import json
+from importlib.metadata import version
 from .github_integration import GitHubIntegration
 from .jira_integration import JiraIntegration
 from .llm_integration import LLMIntegration
@@ -9,6 +10,7 @@ from .config_manager import ConfigManager
 from .ux import AnimationManager
 
 @click.group()
+@click.version_option(version=version("jira-ai-cli"))
 def cli():
     """LLM-Assisted Jira CLI"""
     pass
