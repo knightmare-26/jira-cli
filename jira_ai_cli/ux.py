@@ -42,6 +42,8 @@ class AnimationManager:
         """Stops the spinner with a failure message."""
         if self.animation_enabled:
             self.spinner.fail(text)
+        else:
+            click.echo(text)
 
     def stop(self):
         """Stops the spinner without a message."""

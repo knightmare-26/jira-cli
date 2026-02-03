@@ -1,146 +1,101 @@
-# LLM-Assisted Jira CLI
+# Jira AI CLI: Your Smart Command-Line Assistant for Jira
 
-This CLI tool helps developers interact with Jira directly from the command line, using an LLM (like Gemini) to assist with reasoning and ticket creation.
+Tired of manually creating Jira tickets from your GitHub activity? The Jira AI CLI is a smart tool that helps you manage your Jira projects directly from your command line, using the power of AI to streamline your workflow.
 
-## Prerequisites
+## What Can It Do?
 
-- Python 3.7+ (for local development)
-- `pip` and `git` (for local development)
-- Docker (for containerized usage)
+-   **Analyze Your Work**: It looks at your GitHub pull requests, commits, or branches.
+-   **Suggest Actions**: It suggests relevant Jira actions, like creating a new ticket or updating an existing one.
+-   **Automate Tedious Tasks**: It can create tickets, add comments, and transition issues for you, saving you time and effort.
 
-## Installation
+## Installation and Setup Guide
 
-### A. Local Installation (for development or non-containerized use)
+This guide will walk you through setting up and using the Jira AI CLI.
 
-1.  **Clone the repository:**
+### Step 1: Prerequisites
+
+Before you begin, you'll need a couple of things:
+
+-   **A Terminal**: This is the command-line interface on your computer. On macOS, you can use the "Terminal" app. On Windows, you can use "PowerShell" or "Command Prompt".
+-   **Git**: A tool for downloading files from GitHub. If you don't have it, you can [download it here](https://git-scm.com/downloads).
+
+### Step 2: Download the Project
+
+1.  Open your terminal.
+2.  Navigate to the directory where you want to save the project.
+3.  Run the following command to download the project files from GitHub:
 
     ```bash
-    git clone <your-repository-url>
-    cd jira-ai-cli
+    git clone https://github.com/elijahdsouza-aera/jira-cli.git
     ```
 
-2.  **Install the CLI:**
+4.  Navigate into the newly created directory:
 
-    Install the package using `pip`. This command will also install all the required dependencies (`click`, `requests`, `jira`, `PyYAML`, `halo`, etc.) and make the `jira-cli` command available in your terminal.
+    ```bash
+    cd jira-cli
+    ```
+
+### Step 3: Install the CLI
+
+Now, you'll install the Jira AI CLI and its dependencies.
+
+1.  Make sure you have Python installed. You can check by running `python --version` or `python3 --version`. If you don't have it, you can [download it here](https://www.python.org/downloads/).
+2.  Install the CLI using pip (Python's package installer):
 
     ```bash
     pip install .
     ```
-
-    *Note: If you are actively developing the CLI, you can install it in "editable" mode with `pip install -e .`. This allows your changes to the source code to be immediately reflected when you run the `jira-cli` command.*
-
-### B. Docker Installation (Recommended for easy and reproducible usage)
-
-The `jira-cli` is designed to be run as a Docker container.
-
-1.  **Pull the Docker Image:**
-
-    The easiest way to use the CLI is to pull the pre-built Docker image from a container registry.
-    *(Replace `your-registry/your-username` with your actual registry path, e.g., `ghcr.io/yourusername` or `yourdockerhubusername`)*
-
+    If you're using Python 3, you might need to use `pip3`:
     ```bash
-    docker pull your-registry/your-username/jira-cli:latest
-    ```
-    *(If you've built the image locally, use `jira-cli:latest` instead of pulling.)*
-
-2.  **Create an alias for easy usage:**
-
-    To use `jira-cli` like a native command, add the following alias to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.profile`):
-
-    ```bash
-    alias jira-cli='docker run --rm -it \
-      -v ~/.jira-cli:/config \
-      -v "$(pwd)":/work \
-      -e CI \
-      your-registry/your-username/jira-cli:latest'
-    ```
-    After adding the alias, reload your shell configuration (e.g., `source ~/.zshrc`).
-
-    *   `-v ~/.jira-cli:/config`: This mounts your local `~/.jira-cli` directory into the container, ensuring your configuration persists across runs.
-    *   `-v "$(pwd)":/work`: This mounts your current working directory into the container, allowing the CLI to access local files if needed.
-    *   `-e CI`: This environment variable is used to automatically disable animations in CI/CD environments.
-    *   `your-registry/your-username/jira-cli:latest`: The name of the Docker image.
-
-### C. Binary Installation (Standalone Executable)
-
-For a standalone executable that doesn't require Python or Docker to be installed directly, you can download pre-built binaries from the project's [GitHub Releases page](https://github.com/your-username/jira-ai-cli/releases). These binaries are automatically built and attached to each new release via GitHub Actions.
-
-*Note: The LLM functionality (using Gemini) still requires the `gemini` CLI tool to be installed and configured on your system, as this binary bundles the Python application but not external CLI dependencies.*
-
-1.  **Download the appropriate executable:**
-    *   Find the `jira-cli` (or `jira-cli.exe` for Windows) for your operating system.
-2.  **Place the executable in your PATH:**
-    *   Move the downloaded `jira-cli` binary to a directory that is included in your system's `PATH` (e.g., `/usr/local/bin` on Linux/macOS, or a custom `bin` directory for Windows).
-3.  **Ensure executable permissions (Linux/macOS):**
-    ```bash
-    chmod +x /usr/local/bin/jira-cli
+    pip3 install .
     ```
 
-## Configuration
+### Step 4: Configure Your Credentials
 
-Before using the CLI, you need to configure it with your Jira and GitHub credentials. The CLI includes an interactive command (`config`) to guide you through this setup. Your credentials will be saved persistently in `~/.jira-cli/config.json`.
+To connect to Jira and GitHub, the CLI needs your credentials. Don't worry, they are stored securely on your local machine.
 
-1.  **Run the `config` command:**
+1.  Run the configuration command:
 
     ```bash
     jira-cli config
     ```
+    If you installed with `pip3`, you might need to run `jira-cli` like this: `python3 -m jira_ai_cli.cli config`
 
-2.  **Provide your credentials:**
+2.  The tool will then prompt you for the following information:
 
-    The tool will prompt you for the following information:
-    - Your Jira Server URL (e.g., `https://your-domain.atlassian.net`)
-    - Your Jira Username (the email you use to log in)
-    - Your Jira API Token (this can be generated from your Atlassian account settings)
-    - Your GitHub Repository Owner (the organization or username that owns the repo)
-    - Your GitHub Repository Name
-    - Your GitHub Personal Access Token (with `repo` scope)
+    -   **Jira Server URL**: The web address of your Jira instance (e.g., `https://your-company.atlassian.net`).
+    -   **Jira Username**: The email address you use to log in to Jira.
+    -   **Jira API Token**: This is like a password for applications. You can create one by following [Atlassian's guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
+    -   **GitHub Repository Owner**: The username or organization that owns the GitHub repository (e.g., `elijahdsouza-aera`).
+    -   **GitHub Repository Name**: The name of the repository (e.g., `jira-cli`).
+    -   **GitHub Personal Access Token**: This is like a password for applications to access GitHub. You can create one by following [GitHub's guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). Make sure to give it the `repo` scope.
 
-    Your credentials will be stored securely locally in `~/.jira-cli/config.json`.
+### Step 5: Start Using the CLI!
 
-## Usage
+You're all set! Now you can start using the Jira AI CLI to manage your projects.
 
-Once the CLI is installed and configured, you can start using it.
+**Example: Get Suggestions for a Pull Request**
 
-**Example: Suggest Jira actions for a Pull Request**
+Let's say you've just created a pull request with the number 123. You can ask the CLI for suggestions like this:
 
 ```bash
 jira-cli suggest --pr 123
 ```
 
-**Animation Control**
+The CLI will analyze the pull request and suggest relevant Jira actions. You can then approve or reject these suggestions.
 
-The CLI features tasteful animations and spinners to enhance the user experience.
+**Other Examples:**
 
--   **Disable Animation Flag:** You can disable animations for a single run using the `--no-animation` flag:
-    ```bash
-    jira-cli suggest --pr 123 --no-animation
-    ```
--   **CI Auto-Disable:** Animations are automatically disabled if the `CI` environment variable is set to `true` (e.g., in continuous integration environments).
+You can also get suggestions for a specific commit or branch:
 
-## Sharing Your Docker Image
+```bash
+# Get suggestions for a commit
+jira-cli suggest --commit <commit_sha>
 
-To enable others to `docker pull` your image directly, you need to push it to a container registry (e.g., Docker Hub, GitHub Container Registry).
+# Get suggestions for a branch
+jira-cli suggest --branch <branch_name>
+```
 
-1.  **Build Your Image (if you haven't already):**
-    ```bash
-    docker build -t jira-cli .
-    ```
-2.  **Tag Your Image:**
-    Tag your local image with the registry, your username, and a repository name.
-    *(Replace `your-registry/your-username` with your actual registry path)*
-    ```bash
-    docker tag jira-cli your-registry/your-username/jira-cli:latest
-    # Example for Docker Hub: docker tag jira-cli mydockerhubusername/jira-cli:latest
-    # Example for GitHub CR: docker tag jira-cli ghcr.io/mygithubusername/jira-cli:latest
-    ```
-3.  **Log in to the Registry:**
-    ```bash
-    docker login your-registry # e.g., docker login ghcr.io
-    ```
-    (You'll be prompted for credentials.)
-4.  **Push the Image:**
-    ```bash
-    docker push your-registry/your-username/jira-cli:latest
-    ```
-    Now, others can use the `docker pull` command from the "Docker Installation" section with your published image name.
+---
+
+We hope you enjoy using the Jira AI CLI! If you have any questions or feedback, please feel free to open an issue on the [GitHub repository](https://github.com/elijahdsouza-aera/jira-cli/issues).
