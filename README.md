@@ -31,7 +31,7 @@ This method provides a standalone executable, eliminating the need for Python or
     *   **Windows:** `Aera-Jira-CLI-windows.exe`
 
 2.  **Add to System PATH:**
-    Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location.
+    Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location. This step is recommended for convenience, allowing you to run the `Aera-Jira-CLI` command without specifying its full path every time.
     *   **Typical locations:** `/usr/local/bin` (Linux/macOS) or a designated `bin` directory (Windows).
 
 3.  **Set Executable Permissions (Linux/macOS only):**
