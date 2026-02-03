@@ -65,9 +65,8 @@ This method is suitable for developers, contributors, or users who prefer to ope
 For a containerized and reproducible environment, you can use Docker.
 
 1.  **Pull the Docker Image:**
-    *(Replace `your-registry/your-username` with the actual path to your Docker image, e.g., `ghcr.io/yourusername/aera-jira-cli`)*
     ```bash
-    docker pull your-registry/your-username/aera-jira-cli:latest
+    docker pull ghcr.io/elijahdsouza-aera/aera-jira-cli:latest
     ```
 2.  **Create an Alias for Easy Usage:**
     Add the following alias to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.profile`) and then reload your shell configuration (e.g., `source ~/.zshrc`). This allows you to use `Aera-Jira-CLI` like a native command.
@@ -76,7 +75,7 @@ For a containerized and reproducible environment, you can use Docker.
       -v ~/.jira-cli:/config \
       -v "$(pwd)":/work \
       -e CI \
-      your-registry/your-username/aera-jira-cli:latest'
+      ghcr.io/elijahdsouza-aera/aera-jira-cli:latest'
     ```
     *   `-v ~/.jira-cli:/config`: Mounts your local `~/.jira-cli` directory into the container to persist your configuration across runs.
     *   `-v "$(pwd)":/work`: Mounts your current working directory into the container, allowing the CLI to access local files if needed.
@@ -84,7 +83,7 @@ For a containerized and reproducible environment, you can use Docker.
 
 ## Configuration
 
-To establish connectivity with Jira and, optionally, GitHub, the CLI requires specific credentials, which are securely stored locally on your machine.
+To establish connectivity with Jira and, optionally, GitHub, the CLI requires specific credentials, which are securely stored locally on your machine. **These credentials are never transmitted to any remote service (like GitHub, Jira, or Gemini) and remain solely on your local system.**
 
 1.  **Initiate Configuration:**
     ```bash
