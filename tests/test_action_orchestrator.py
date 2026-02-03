@@ -1,5 +1,5 @@
 import pytest
-import json # Added import
+import json
 from unittest.mock import MagicMock, patch
 from jira_ai_cli.action_orchestrator import ActionOrchestrator
 from jira_ai_cli.github_integration import GitHubIntegration
@@ -29,15 +29,17 @@ def orchestrator(mock_integrations):
     )
 
 def test_suggest_actions_no_github_context(orchestrator, mock_integrations):
+    mock_integrations["github"].is_configured = False # Explicitly set to not configured
     mock_integrations["github"].get_pull_request_context.return_value = None
     
     result = orchestrator.suggest_actions(pr=123)
     
     assert result == []
-    mock_integrations["anim"].fail.assert_called_once_with("Failed to retrieve GitHub context.")
+    mock_integrations["anim"].fail.assert_called_once_with("GitHub integration is not configured. Cannot process GitHub-related options (--pr, --commit, --branch).")
 
 def test_suggest_actions_github_jira_llm_success(orchestrator, mock_integrations):
     # Mock GitHub context
+    mock_integrations["github"].is_configured = True
     mock_integrations["github"].get_pull_request_context.return_value = {
         "title": "Test PR", "message": "Test commit"
     }
@@ -78,6 +80,7 @@ def test_suggest_actions_github_jira_llm_success(orchestrator, mock_integrations
     assert result[1]["type"] == "create_ticket"
 
 def test_suggest_actions_llm_no_suggestions(orchestrator, mock_integrations):
+    mock_integrations["github"].is_configured = True
     mock_integrations["github"].get_pull_request_context.return_value = {"title": "Test PR"}
     mock_integrations["jira"].jira = True
     mock_integrations["jira"].search_issues.return_value = []
@@ -90,6 +93,7 @@ def test_suggest_actions_llm_no_suggestions(orchestrator, mock_integrations):
     mock_integrations["anim"].fail.assert_called_with("LLM did not provide any suggestions.")
 
 def test_suggest_actions_policy_rejects_action(orchestrator, mock_integrations):
+    mock_integrations["github"].is_configured = True
     mock_integrations["github"].get_pull_request_context.return_value = {"title": "Test PR"}
     mock_integrations["jira"].jira = True
     mock_integrations["jira"].search_issues.return_value = []
@@ -110,63 +114,78 @@ def test_suggest_actions_policy_rejects_action(orchestrator, mock_integrations):
     mock_integrations["anim"].succeed.assert_called_with("Policy rules applied.") # Still succeeds applying rules
     mock_integrations["anim"].fail.assert_not_called() # No overall failure, just filtering
 
-@patch('click.prompt')
-@patch('click.confirm')
-@patch('click.edit')
-def test_present_and_execute_actions_create_ticket(mock_edit, mock_confirm, mock_prompt, orchestrator, mock_integrations):
-    suggested_actions = [{"type": "create_ticket", "project": "PROJ", "summary": "New Task", "description": "Details"}]
-    mock_confirm.return_value = True # User approves
+
+# --- New tests for refactored execute_action and helper methods ---
+
+def test_execute_action_create_ticket(orchestrator, mock_integrations):
+    action = {"type": "create_ticket", "project": "PROJ", "summary": "Test Summary", "description": "Test Description"}
     mock_integrations["jira"].create_issue.return_value = MagicMock(key="PROJ-NEW")
 
-    orchestrator.present_and_execute_actions(suggested_actions)
+    result = orchestrator.execute_action(action)
+    assert result is True
+    mock_integrations["jira"].create_issue.assert_called_once_with("PROJ", "Test Summary", "Test Description", "Task", None)
+    mock_integrations["anim"].succeed.assert_called_once_with("Successfully created Jira ticket: PROJ-NEW")
 
-    mock_integrations["jira"].create_issue.assert_called_once_with("PROJ", "New Task", "Details", "Task", None)
-    mock_integrations["anim"].succeed.assert_any_call("Successfully created Jira ticket: PROJ-NEW")
+def test_execute_action_create_ticket_failure(orchestrator, mock_integrations):
+    action = {"type": "create_ticket", "project": "PROJ", "summary": "Test Summary", "description": "Test Description"}
+    mock_integrations["jira"].create_issue.return_value = None
 
-@patch('click.prompt')
-@patch('click.confirm')
-@patch('click.edit')
-def test_present_and_execute_actions_transition_ticket_approved(mock_edit, mock_confirm, mock_prompt, orchestrator, mock_integrations):
-    suggested_actions = [{"type": "transition_ticket", "issue_key": "PROJ-1", "transition_name": "In Progress"}]
-    mock_confirm.return_value = True # User approves
+    result = orchestrator.execute_action(action)
+    assert result is False
+    mock_integrations["jira"].create_issue.assert_called_once_with("PROJ", "Test Summary", "Test Description", "Task", None)
+    mock_integrations["anim"].fail.assert_called_once_with("Failed to create Jira ticket.")
+
+def test_execute_action_transition_ticket_success(orchestrator, mock_integrations):
+    action = {"type": "transition_ticket", "issue_key": "PROJ-1", "transition_name": "In Progress"}
     mock_integrations["jira"].get_issue_status.return_value = "OPEN"
     mock_integrations["policy"].is_transition_allowed.return_value = True
     mock_integrations["jira"].transition_issue.return_value = True
 
-    orchestrator.present_and_execute_actions(suggested_actions)
-
+    result = orchestrator.execute_action(action)
+    assert result is True
     mock_integrations["jira"].transition_issue.assert_called_once_with("PROJ-1", "In Progress")
-    mock_integrations["anim"].succeed.assert_any_call("Successfully transitioned Jira ticket PROJ-1 to In Progress")
+    mock_integrations["anim"].succeed.assert_called_once_with("Successfully transitioned Jira ticket PROJ-1 to In Progress")
 
-@patch('click.prompt')
-@patch('click.confirm')
-@patch('click.edit')
-def test_present_and_execute_actions_transition_ticket_policy_rejects(mock_edit, mock_confirm, mock_prompt, orchestrator, mock_integrations):
-    suggested_actions = [{"type": "transition_ticket", "issue_key": "PROJ-1", "transition_name": "Done"}]
-    mock_confirm.return_value = True # User approves
+def test_execute_action_transition_ticket_policy_rejects(orchestrator, mock_integrations):
+    action = {"type": "transition_ticket", "issue_key": "PROJ-1", "transition_name": "Done"}
     mock_integrations["jira"].get_issue_status.return_value = "IN PROGRESS"
-    mock_integrations["policy"].is_transition_allowed.return_value = False # Policy rejects
+    mock_integrations["policy"].is_transition_allowed.return_value = False
 
-    orchestrator.present_and_execute_actions(suggested_actions)
-
+    result = orchestrator.execute_action(action)
+    assert result is False
     mock_integrations["jira"].transition_issue.assert_not_called()
-    mock_integrations["anim"].fail.assert_any_call("Policy: Transition from current status to 'Done' for PROJ-1 is not allowed.")
+    mock_integrations["anim"].fail.assert_called_once_with("Policy: Transition from current status to 'Done' for PROJ-1 is not allowed.")
 
-@patch('click.prompt')
-@patch('click.confirm')
-@patch('click.edit')
-def test_present_and_execute_actions_edit_action(mock_edit, mock_confirm, mock_prompt, orchestrator, mock_integrations):
-    original_action = {"type": "create_ticket", "project": "PROJ", "summary": "Original Summary"}
-    edited_action = {"type": "create_ticket", "project": "PROJ", "summary": "Edited Summary", "description": "New Desc"}
-    suggested_actions = [original_action]
+def test_execute_action_add_comment_success(orchestrator, mock_integrations):
+    action = {"type": "add_comment", "issue_key": "PROJ-1", "comment_body": "New Comment"}
+    mock_integrations["jira"].add_comment.return_value = MagicMock() # Any non-None value indicates success
 
-    mock_prompt.return_value = "y" # User chooses to edit
-    mock_edit.return_value = json.dumps(edited_action) # User provides edited JSON
-    mock_confirm.return_value = True # User approves edited action
+    result = orchestrator.execute_action(action)
+    assert result is True
+    mock_integrations["jira"].add_comment.assert_called_once_with("PROJ-1", "New Comment")
+    mock_integrations["anim"].succeed.assert_called_once_with("Successfully added comment to Jira ticket PROJ-1")
 
-    mock_integrations["jira"].create_issue.return_value = MagicMock(key="PROJ-EDITED")
+def test_execute_action_add_comment_failure(orchestrator, mock_integrations):
+    action = {"type": "add_comment", "issue_key": "PROJ-1", "comment_body": "New Comment"}
+    mock_integrations["jira"].add_comment.return_value = None
 
-    orchestrator.present_and_execute_actions(suggested_actions)
+    result = orchestrator.execute_action(action)
+    assert result is False
+    mock_integrations["jira"].add_comment.assert_called_once_with("PROJ-1", "New Comment")
+    mock_integrations["anim"].fail.assert_called_once_with("Failed to add comment to Jira ticket.")
 
-    mock_integrations["jira"].create_issue.assert_called_once_with("PROJ", "Edited Summary", "New Desc", "Task", None)
-    mock_integrations["anim"].succeed.assert_any_call("Successfully created Jira ticket: PROJ-EDITED")
+def test_execute_action_use_existing_ticket(orchestrator, mock_integrations):
+    action = {"type": "use_existing_ticket", "issue_key": "PROJ-1"}
+    
+    result = orchestrator.execute_action(action)
+    assert result is True
+    mock_integrations["anim"].succeed.assert_called_once_with("Acknowledged suggestion to use existing Jira ticket: PROJ-1")
+    mock_integrations["jira"].create_issue.assert_not_called() # Ensure no API call
+
+def test_execute_action_unknown_type(orchestrator, mock_integrations):
+    action = {"type": "unknown_action", "data": "some data"}
+    
+    result = orchestrator.execute_action(action)
+    assert result is False
+    mock_integrations["anim"].fail.assert_called_once_with("Unknown action type: unknown_action")
+    mock_integrations["jira"].create_issue.assert_not_called() # Ensure no API call
