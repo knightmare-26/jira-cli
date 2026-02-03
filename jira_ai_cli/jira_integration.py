@@ -2,7 +2,7 @@ import os
 from jira import JIRA
 import click
 from .config_manager import ConfigManager
-
+#test for push
 class JiraIntegration:
     def __init__(self):
         config_manager = ConfigManager()
