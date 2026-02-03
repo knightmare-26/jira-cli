@@ -84,7 +84,7 @@ For a containerized and reproducible environment, you can use Docker.
 
 ## Configuration
 
-To establish connectivity with Jira and GitHub, the CLI requires specific credentials, which are securely stored locally on your machine.
+To establish connectivity with Jira and, optionally, GitHub, the CLI requires specific credentials, which are securely stored locally on your machine.
 
 1.  **Initiate Configuration:**
     ```bash
@@ -97,6 +97,8 @@ To establish connectivity with Jira and GitHub, the CLI requires specific creden
     -   **Jira Server URL**: Your Jira instance's web address (e.g., `https://your-company.atlassian.net`).
     -   **Jira Username**: The email associated with your Jira account.
     -   **Jira API Token**: An API token, obtainable via [Atlassian's guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
+
+    You will then be asked if you want to configure GitHub integration. This is **optional** and only required if you plan to use features that interact with GitHub (e.g., `--pr`, `--commit`, or `--branch` options).
     -   **GitHub Repository Owner**: The GitHub organization or username owning the repository (e.g., `elijahdsouza-aera`).
     -   **GitHub Repository Name**: The name of the GitHub repository (e.g., `jira-cli`).
     -   **GitHub Personal Access Token**: A Personal Access Token (PAT) with `repo` scope, generated per [GitHub's documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
@@ -107,7 +109,7 @@ Upon successful installation and configuration, the Aera Jira AI CLI is ready fo
 
 **Example: Suggest Jira Actions for a Pull Request**
 
-To obtain AI-driven suggestions for a GitHub pull request (e.g., PR #123):
+To obtain AI-driven suggestions for a GitHub pull request (e.g., PR #123), you must have GitHub integration configured.
 
 ```bash
 Aera-Jira-CLI suggest --pr 123
@@ -118,7 +120,7 @@ The CLI will analyze the pull request and propose relevant Jira actions, which c
 
 **Additional Usage Examples:**
 
-Suggestions can also be generated for specific commits or branches:
+Suggestions can also be generated for specific commits or branches (requires GitHub integration configured):
 
 ```bash
 # Suggestions for a commit

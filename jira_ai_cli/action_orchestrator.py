@@ -22,40 +22,55 @@ class ActionOrchestrator:
         Orchestrates the process of gathering context, getting LLM suggestions,
         applying policy rules, and preparing actions for user approval.
         """
-        # 1. Gather GitHub context
-        self.anim.start("Loading GitHub context...")
         github_context = None
-        if pr:
-            github_context = self.github_integrator.get_pull_request_context(pr)
-        elif commit:
-            github_context = self.github_integrator.get_commit_context(commit)
-        elif branch:
-            github_context = self.github_integrator.get_branch_context(branch)
+        
+        # Check if GitHub-related options were provided
+        github_options_provided = any([pr, commit, branch])
 
-        if not github_context:
-            self.anim.fail("Failed to retrieve GitHub context.")
-            return []
-        self.anim.succeed("GitHub context loaded.")
+        if github_options_provided:
+            if not self.github_integrator.is_configured:
+                self.anim.fail("GitHub integration is not configured. Cannot process GitHub-related options (--pr, --commit, --branch).")
+                return []
+            
+            # 1. Gather GitHub context
+            self.anim.start("Loading GitHub context...")
+            if pr:
+                github_context = self.github_integrator.get_pull_request_context(pr)
+            elif commit:
+                github_context = self.github_integrator.get_commit_context(commit)
+            elif branch:
+                github_context = self.github_integrator.get_branch_context(branch)
 
-        # 2. Search Jira for similar tickets
-        self.anim.start("Searching Jira for similar tickets...")
+            if not github_context:
+                self.anim.fail("Failed to retrieve GitHub context.")
+                return []
+            self.anim.succeed("GitHub context loaded.")
+        else:
+            self.anim.succeed("No GitHub context requested.") # Only relevant if no GitHub options are used
+
+        # 2. Search Jira for similar tickets (only if GitHub context is available, or if other context is later added)
         jira_issues = []
-        if self.jira_integrator.jira:
+        if github_context and self.jira_integrator.jira: # Only search Jira if GitHub context is available and Jira is configured
+            self.anim.start("Searching Jira for similar tickets...")
             search_query_text = github_context.get("title") or github_context.get("message")
             if search_query_text:
                 search_query = f'text ~ "{search_query_text}"'
                 jira_issues = self.jira_integrator.search_issues(search_query, max_results=5)
             self.anim.succeed(f"Found {len(jira_issues)} potential Jira issue(s).")
+        elif not self.jira_integrator.jira:
+            self.anim.fail("Jira integration not configured. Skipping Jira search.")
         else:
-            self.anim.fail("Jira integration not configured. Skipping search.")
+            self.anim.succeed("No GitHub context for Jira search.")
 
         # 3. Call LLM for analysis and suggestions
         self.anim.start("Asking the LLM for suggestions...")
         llm_prompt_data = {
-            "github_context": github_context,
             "jira_issues_found": [{"key": issue.key, "summary": issue.fields.summary, "description": issue.fields.description} for issue in jira_issues],
             "request": "Propose Jira actions based on the provided context. Respond in the specified JSON format."
         }
+        if github_context: # Only add github_context if it exists
+            llm_prompt_data["github_context"] = github_context
+            
         llm_prompt = json.dumps(llm_prompt_data)
         llm_suggestions = self.llm_integrator.call_gemini(llm_prompt)
 
