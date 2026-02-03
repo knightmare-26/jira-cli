@@ -1,122 +1,111 @@
-# Aera Jira AI CLI: Your Smart Command-Line Assistant for Jira
+# Aera Jira AI CLI
 
-Tired of manually creating Jira tickets from your GitHub activity? The Aera Jira AI CLI is a smart tool that helps you manage your Jira projects directly from your command line, using the power of AI to streamline your workflow.
+The Aera Jira AI CLI is a powerful command-line interface designed to streamline Jira workflow management through AI assistance. It integrates seamlessly with GitHub to automate tasks and provide intelligent suggestions, enhancing developer productivity.
 
-## What Can It Do?
+## Key Features
 
--   **Analyze Your Work**: It looks at your GitHub pull requests, commits, or branches.
--   **Suggest Actions**: It suggests relevant Jira actions, like creating a new ticket or updating an existing one.
--   **Automate Tedious Tasks**: It can create tickets, add comments, and transition issues for you, saving you time and effort.
+-   **Contextual Analysis**: Analyzes GitHub pull requests, commits, and branches to understand development context.
+-   **Intelligent Suggestions**: Provides AI-driven recommendations for Jira actions, including ticket creation and updates.
+-   **Automated Workflow**: Facilitates the automated creation, commenting, and transitioning of Jira issues.
 
-## Essential Prerequisites (Before You Start!)
+## Prerequisites
 
-Before you can install and use the Aera Jira AI CLI, you need to ensure you have these fundamental tools already installed on your computer. The Aera Jira AI CLI is a standalone program, but it relies on these external programs to function correctly.
+To effectively utilize the Aera Jira AI CLI, the following external tools must be installed and accessible on your system:
 
--   **A Terminal**: This is the command-line interface on your computer. You'll use it to type commands.
-    *   **macOS**: Look for the "Terminal" app.
-    *   **Windows**: Use "PowerShell" or "Command Prompt".
-    *   **Linux**: Your distribution will likely have a pre-installed terminal application.
--   **Git**: This is a tool for downloading files from GitHub (even if you're installing the binary, Git is often needed for other tasks and is a good tool to have). If you don't have it, you can [download and install it here](https://git-scm.com/downloads).
--   **Gemini CLI**: For the AI functionality (which is what makes this CLI smart!), you need the official `gemini` command-line tool installed and configured on your system. This is crucial for the CLI to communicate with the Gemini AI model. Follow the [official Gemini documentation](https://ai.google.dev/gemini-api/docs/get-started/python) to set it up.
+-   **Terminal Access**: A command-line interpreter (e.g., PowerShell, Command Prompt on Windows; Terminal on macOS/Linux).
+-   **Git**: A version control system essential for repository operations. Download Git from [git-scm.com/downloads](https://git-scm.com/downloads).
+-   **Gemini CLI**: The official Gemini command-line tool is required for AI functionality and communication with the Gemini AI model. Refer to the [official Gemini documentation](https://ai.google.dev/gemini-api/docs/get-started/python) for installation and configuration instructions.
 
-## Installation and Setup Guide
+## Installation
 
-This guide will walk you through setting up and using the Aera Jira AI CLI.
+The Aera Jira AI CLI offers two primary installation methods:
 
-### Install the Aera Jira AI CLI
+### A. Binary Installation (Recommended)
 
-You have two main options for installation:
+This method provides a standalone executable, eliminating the need for Python or other language-specific dependencies.
 
-#### A. Binary Installation (Recommended for most users)
+1.  **Download the Executable:**
+    Access the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases) to download the pre-compiled binary. The Releases page is recommended as it facilitates the selection of the correct executable for your operating system (Linux, macOS, or Windows) and provides associated release information.
+    *   **Linux:** `Aera-Jira-CLI-linux`
+    *   **macOS:** `Aera-Jira-CLI-macos`
+    *   **Windows:** `Aera-Jira-CLI-windows.exe`
 
-This is the easiest way to get started as it doesn't require you to install Python or other programming dependencies. The binary is a self-contained executable program.
+2.  **Add to System PATH:**
+    Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location.
+    *   **Typical locations:** `/usr/local/bin` (Linux/macOS) or a designated `bin` directory (Windows).
 
-1.  **Download the executable:**
-    Go to the [GitHub Releases page](https://github.com/elijahdsouza-aera/jira-cli/releases).
-    *   **Why the releases page?** This page simplifies the process by letting you easily find the correct version of the Aera Jira AI CLI for your specific operating system (Linux, macOS, or Windows). It also provides important release notes and details, ensuring you get the right file.
-    *   Download the appropriate file for your operating system:
-        *   **Linux:** `Aera-Jira-CLI-linux`
-        *   **macOS:** `Aera-Jira-CLI-macos`
-        *   **Windows:** `Aera-Jira-CLI-windows.exe`
-
-2.  **Place the executable in your PATH:**
-    Moving the downloaded file to a directory included in your system's `PATH` allows you to run the command from any location in your terminal without typing its full path.
-    *   **Common locations:** `/usr/local/bin` (Linux/macOS) or a custom `bin` directory that you've added to your Windows `PATH` environment variable.
-
-3.  **Ensure executable permissions (Linux/macOS only):**
-    Open your terminal, navigate to where you saved the file, and run:
+3.  **Set Executable Permissions (Linux/macOS only):**
+    Execute the following command in your terminal to grant execution privileges:
     ```bash
     chmod +x /path/to/Aera-Jira-CLI-macos # or -linux
     ```
 
-#### B. Source Installation (for Developers or Advanced Users)
+### B. Source Installation
 
-If you plan to contribute to the project, need to modify the code, or prefer to run directly from Python source, follow these steps:
+This method is suitable for developers, contributors, or users who prefer to operate directly from the Python source code.
 
-1.  **Clone the repository:**
-    Open your terminal and run:
+1.  **Clone the Repository:**
     ```bash
     git clone https://github.com/elijahdsouza-aera/jira-cli.git
     cd jira-cli
     ```
-2.  **Install the CLI:**
-    Make sure you have Python installed (`python --version` or `python3 --version`). If not, [download Python here](https://www.python.org/downloads/).
-    Install the package using `pip` (Python's package installer). This command will also install all the required Python dependencies.
+2.  **Install from Source:**
+    Ensure Python is installed (verify with `python --version` or `python3 --version`; download from [python.org/downloads](https://www.python.org/downloads/) if necessary).
+    Install the package and its dependencies using pip:
     ```bash
     pip install .
     ```
-    If you are actively developing, you can install in "editable" mode:
+    For active development, install in editable mode:
     ```bash
     pip install -e .
     ```
 
-### Step 3: Configure Your Credentials
+## Configuration
 
-To connect to Jira and GitHub, the CLI needs your credentials. Don't worry, they are stored securely on your local machine.
+To establish connectivity with Jira and GitHub, the CLI requires specific credentials, which are securely stored locally on your machine.
 
-1.  Run the configuration command:
-
+1.  **Initiate Configuration:**
     ```bash
     Aera-Jira-CLI config
     ```
-    *If you installed from source, you'll use `jira-cli config` instead.*
+    *For source installations, utilize `jira-cli config`.*
 
-2.  The tool will then prompt you for the following information:
+2.  **Provide Credentials:**
+    The utility will prompt for the following information:
+    -   **Jira Server URL**: Your Jira instance's web address (e.g., `https://your-company.atlassian.net`).
+    -   **Jira Username**: The email associated with your Jira account.
+    -   **Jira API Token**: An API token, obtainable via [Atlassian's guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
+    -   **GitHub Repository Owner**: The GitHub organization or username owning the repository (e.g., `elijahdsouza-aera`).
+    -   **GitHub Repository Name**: The name of the GitHub repository (e.g., `jira-cli`).
+    -   **GitHub Personal Access Token**: A Personal Access Token (PAT) with `repo` scope, generated per [GitHub's documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
-    -   **Jira Server URL**: The web address of your Jira instance (e.g., `https://your-company.atlassian.net`).
-    -   **Jira Username**: The email address you use to log in to Jira.
-    -   **Jira API Token**: This is like a password for applications. You can create one by following [Atlassian's guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
-    -   **GitHub Repository Owner**: The username or organization that owns the GitHub repository (e.g., `elijahdsouza-aera`).
-    -   **GitHub Repository Name**: The name of the repository (e.g., `jira-cli`).
-    -   **GitHub Personal Access Token**: This is like a password for applications to access GitHub. You can create one by following [GitHub's guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). Make sure to give it the `repo` scope.
+## Usage
 
-### Step 4: Start Using the CLI!
+Upon successful installation and configuration, the Aera Jira AI CLI is ready for use.
 
-You're all set! Now you can start using the Aera Jira AI CLI to manage your projects.
+**Example: Suggest Jira Actions for a Pull Request**
 
-**Example: Get Suggestions for a Pull Request**
-
-Let's say you've just created a pull request with the number 123. You can ask the CLI for suggestions like this:
+To obtain AI-driven suggestions for a GitHub pull request (e.g., PR #123):
 
 ```bash
 Aera-Jira-CLI suggest --pr 123
 ```
-*If you installed from source, you'll use `jira-cli suggest --pr 123` instead.*
+*For source installations, utilize `jira-cli suggest --pr 123`.*
 
-The CLI will analyze the pull request and suggest relevant Jira actions. You can then approve or reject these suggestions.
+The CLI will analyze the pull request and propose relevant Jira actions, which can then be approved or rejected.
 
-**Other Examples:**
+**Additional Usage Examples:**
 
-You can also get suggestions for a specific commit or branch:
+Suggestions can also be generated for specific commits or branches:
 
 ```bash
-# Get suggestions for a commit
+# Suggestions for a commit
 Aera-Jira-CLI suggest --commit <commit_sha>
 
-# Get suggestions for a branch
+# Suggestions for a branch
 Aera-Jira-CLI suggest --branch <branch_name>
 ```
 
 ---
 
-We hope you enjoy using the Aera Jira AI CLI! If you have any questions or feedback, please feel free to open an issue on the [GitHub repository](https://github.com/elijahdsouza-aera/jira-cli/issues).
+For inquiries or feedback, please utilize the [GitHub repository's issue tracker](https://github.com/elijahdsouza-aera/jira-cli/issues).
