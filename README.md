@@ -79,7 +79,24 @@ This method provides a standalone executable, eliminating the need for Python or
     chmod +x /path/to/AI-Jira-CLI-macos # or -linux
     ```
 
-### B. Source Installation
+### B. Homebrew Installation (macOS & Linux)
+
+For macOS and Linux users, the AI Jira AI CLI can be easily installed and managed using Homebrew.
+
+1.  **Tap the Repository (if not already tapped):**
+    First, you need to tap the repository containing the formula:
+    ```bash
+    brew tap knightmare-26/ai-jira-cli
+    ```
+
+2.  **Install the CLI:**
+    Once the tap is added, you can install the CLI:
+    ```bash
+    brew install ai-jira-cli
+    ```
+    This will install the `ai-jira-cli` executable to your Homebrew prefix (usually `/usr/local/bin` or `/opt/homebrew/bin`), making it available in your PATH.
+
+### C. Source Installation
 
 This method is suitable for developers, contributors, or users who prefer to operate directly from the Python source code.
 
@@ -99,7 +116,7 @@ This method is suitable for developers, contributors, or users who prefer to ope
     pip install -e .
     ```
 
-### C. Docker Installation
+### D. Docker Installation
 
 For a containerized and reproducible environment, you can use Docker.
 
