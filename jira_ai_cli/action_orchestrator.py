@@ -22,40 +22,55 @@ class ActionOrchestrator:
         Orchestrates the process of gathering context, getting LLM suggestions,
         applying policy rules, and preparing actions for user approval.
         """
-        # 1. Gather GitHub context
-        self.anim.start("Loading GitHub context...")
         github_context = None
-        if pr:
-            github_context = self.github_integrator.get_pull_request_context(pr)
-        elif commit:
-            github_context = self.github_integrator.get_commit_context(commit)
-        elif branch:
-            github_context = self.github_integrator.get_branch_context(branch)
+        
+        # Check if GitHub-related options were provided
+        github_options_provided = any([pr, commit, branch])
 
-        if not github_context:
-            self.anim.fail("Failed to retrieve GitHub context.")
-            return []
-        self.anim.succeed("GitHub context loaded.")
+        if github_options_provided:
+            if not self.github_integrator.is_configured:
+                self.anim.fail("GitHub integration is not configured. Cannot process GitHub-related options (--pr, --commit, --branch).")
+                return []
+            
+            # 1. Gather GitHub context
+            self.anim.start("Loading GitHub context...")
+            if pr:
+                github_context = self.github_integrator.get_pull_request_context(pr)
+            elif commit:
+                github_context = self.github_integrator.get_commit_context(commit)
+            elif branch:
+                github_context = self.github_integrator.get_branch_context(branch)
 
-        # 2. Search Jira for similar tickets
-        self.anim.start("Searching Jira for similar tickets...")
+            if not github_context:
+                self.anim.fail("Failed to retrieve GitHub context.")
+                return []
+            self.anim.succeed("GitHub context loaded.")
+        else:
+            self.anim.succeed("No GitHub context requested.") # Only relevant if no GitHub options are used
+
+        # 2. Search Jira for similar tickets (only if GitHub context is available, or if other context is later added)
         jira_issues = []
-        if self.jira_integrator.jira:
+        if github_context and self.jira_integrator.jira: # Only search Jira if GitHub context is available and Jira is configured
+            self.anim.start("Searching Jira for similar tickets...")
             search_query_text = github_context.get("title") or github_context.get("message")
             if search_query_text:
                 search_query = f'text ~ "{search_query_text}"'
                 jira_issues = self.jira_integrator.search_issues(search_query, max_results=5)
             self.anim.succeed(f"Found {len(jira_issues)} potential Jira issue(s).")
+        elif not self.jira_integrator.jira:
+            self.anim.fail("Jira integration not configured. Skipping Jira search.")
         else:
-            self.anim.fail("Jira integration not configured. Skipping search.")
+            self.anim.succeed("No GitHub context for Jira search.")
 
         # 3. Call LLM for analysis and suggestions
         self.anim.start("Asking the LLM for suggestions...")
         llm_prompt_data = {
-            "github_context": github_context,
             "jira_issues_found": [{"key": issue.key, "summary": issue.fields.summary, "description": issue.fields.description} for issue in jira_issues],
             "request": "Propose Jira actions based on the provided context. Respond in the specified JSON format."
         }
+        if github_context: # Only add github_context if it exists
+            llm_prompt_data["github_context"] = github_context
+            
         llm_prompt = json.dumps(llm_prompt_data)
         llm_suggestions = self.llm_integrator.call_gemini(llm_prompt)
 
@@ -98,45 +113,55 @@ class ActionOrchestrator:
                 click.echo(f"Policy: Rejecting action type '{action_type}' as it is not allowed by policy.", err=True)
         return filtered_actions
 
+    def _execute_create_ticket(self, action: Dict[str, Any]) -> bool:
+        project = action.get("project", "YOUR_DEFAULT_JIRA_PROJECT") # TODO: Make configurable
+        summary = action.get("summary")
+        description = action.get("description")
+        issue_type = action.get("issue_type", "Task")
+        labels = action.get("labels")
+        if summary and description:
+            new_issue = self.jira_integrator.create_issue(project, summary, description, issue_type, labels)
+            if new_issue:
+                self.anim.succeed(f"Successfully created Jira ticket: {new_issue.key}")
+                return True
+        self.anim.fail("Failed to create Jira ticket.")
+        return False
+
+    def _execute_transition_ticket(self, action: Dict[str, Any]) -> bool:
+        issue_key = action.get("issue_key")
+        transition_name = action.get("transition_name")
+        if issue_key and transition_name:
+            if self.policy_engine.is_transition_allowed(self.jira_integrator.get_issue_status(issue_key), transition_name):
+                if self.jira_integrator.transition_issue(issue_key, transition_name):
+                    self.anim.succeed(f"Successfully transitioned Jira ticket {issue_key} to {transition_name}")
+                    return True
+            else:
+                self.anim.fail(f"Policy: Transition from current status to '{transition_name}' for {issue_key} is not allowed.")
+                return False # Explicitly return False here to avoid the generic fail
+        self.anim.fail("Failed to transition Jira ticket.")
+        return False
+
+    def _execute_add_comment(self, action: Dict[str, Any]) -> bool:
+        issue_key = action.get("issue_key")
+        comment_body = action.get("comment_body")
+        if issue_key and comment_body:
+            if self.jira_integrator.add_comment(issue_key, comment_body):
+                self.anim.succeed(f"Successfully added comment to Jira ticket {issue_key}")
+                return True
+        self.anim.fail("Failed to add comment to Jira ticket.")
+        return False
+
     def execute_action(self, action: Dict[str, Any]) -> bool:
         """
-        Executes a given action.
+        Executes a given action by dispatching to specific helper methods.
         """
         action_type = action.get("type")
         if action_type == "create_ticket":
-            project = action.get("project", "YOUR_DEFAULT_JIRA_PROJECT") # TODO: Make configurable
-            summary = action.get("summary")
-            description = action.get("description")
-            issue_type = action.get("issue_type", "Task")
-            labels = action.get("labels")
-            if summary and description:
-                new_issue = self.jira_integrator.create_issue(project, summary, description, issue_type, labels)
-                if new_issue:
-                    self.anim.succeed(f"Successfully created Jira ticket: {new_issue.key}")
-                    return True
-            self.anim.fail("Failed to create Jira ticket.")
-            return False
+            return self._execute_create_ticket(action)
         elif action_type == "transition_ticket":
-            issue_key = action.get("issue_key")
-            transition_name = action.get("transition_name")
-            if issue_key and transition_name:
-                if self.policy_engine.is_transition_allowed(self.jira_integrator.get_issue_status(issue_key), transition_name): # Need to get current status first
-                    if self.jira_integrator.transition_issue(issue_key, transition_name):
-                        self.anim.succeed(f"Successfully transitioned Jira ticket {issue_key} to {transition_name}")
-                        return True
-                else:
-                    self.anim.fail(f"Policy: Transition from current status to '{transition_name}' for {issue_key} is not allowed.")
-            self.anim.fail("Failed to transition Jira ticket.")
-            return False
+            return self._execute_transition_ticket(action)
         elif action_type == "add_comment":
-            issue_key = action.get("issue_key")
-            comment_body = action.get("comment_body")
-            if issue_key and comment_body:
-                if self.jira_integrator.add_comment(issue_key, comment_body):
-                    self.anim.succeed(f"Successfully added comment to Jira ticket {issue_key}")
-                    return True
-            self.anim.fail("Failed to add comment to Jira ticket.")
-            return False
+            return self._execute_add_comment(action)
         elif action_type == "use_existing_ticket":
             issue_key = action.get("issue_key")
             self.anim.succeed(f"Acknowledged suggestion to use existing Jira ticket: {issue_key}")

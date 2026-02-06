@@ -15,17 +15,26 @@ class GitHubIntegration:
         self.repo = config.get("GITHUB_REPO")
 
         if not all([self.github_token, self.owner, self.repo]):
-            click.echo("Error: GitHub configuration not found. Please run 'jira-ai config' to set up your credentials.", err=True)
-            self.github_token = None
-            self.owner = "your-github-org" # Placeholder to avoid breaking API URL
-            self.repo = "your-github-repo" # Placeholder
-
-        self.headers = {
-            "Authorization": f"token {self.github_token}",
-            "Accept": "application/vnd.github.v3+json",
-        }
+            self.github_token = None # Explicitly set to None if incomplete
+            self.owner = None
+            self.repo = None
+            self.headers = {} # Empty headers if not configured
+            # No error message here, as it's now optional. Orchestrator will handle.
+        else:
+            self.headers = {
+                "Authorization": f"token {self.github_token}",
+                "Accept": "application/vnd.github.v3+json",
+            }
+    
+    @property
+    def is_configured(self):
+        return all([self.github_token, self.owner, self.repo])
 
     def _make_request(self, method, path, params=None):
+        if not self.is_configured:
+            click.echo("GitHub integration is not configured. Skipping API request.", err=True)
+            return None
+
         url = f"{GITHUB_API_URL}/repos/{self.owner}/{self.repo}/{path}"
         try:
             response = requests.request(method, url, headers=self.headers, params=params)
@@ -40,6 +49,10 @@ class GitHubIntegration:
         Fetches context for a given Pull Request.
         Returns PR title, description, and related commit messages.
         """
+        if not self.is_configured:
+            click.echo("GitHub integration is not configured. Cannot get PR context.", err=True)
+            return None
+        
         click.echo(f"Fetching PR context for PR #{pr_number}...")
         pr_data = self._make_request("GET", f"pulls/{pr_number}")
         if not pr_data:
@@ -67,6 +80,10 @@ class GitHubIntegration:
         Fetches context for a given Commit.
         Returns commit message.
         """
+        if not self.is_configured:
+            click.echo("GitHub integration is not configured. Cannot get commit context.", err=True)
+            return None
+
         click.echo(f"Fetching commit context for SHA: {commit_sha}...")
         commit_data = self._make_request("GET", f"commits/{commit_sha}")
         if not commit_data:
@@ -83,6 +100,10 @@ class GitHubIntegration:
         Fetches context for a given Branch.
         For simplicity, this might just get the latest commit on the branch.
         """
+        if not self.is_configured:
+            click.echo("GitHub integration is not configured. Cannot get branch context.", err=True)
+            return None
+
         click.echo(f"Fetching branch context for branch: {branch_name}...")
         branch_data = self._make_request("GET", f"branches/{branch_name}")
         if not branch_data:

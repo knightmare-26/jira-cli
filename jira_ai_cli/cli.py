@@ -1,5 +1,6 @@
 import click
 import json
+from importlib.metadata import version
 from .github_integration import GitHubIntegration
 from .jira_integration import JiraIntegration
 from .llm_integration import LLMIntegration
@@ -9,6 +10,7 @@ from .config_manager import ConfigManager
 from .ux import AnimationManager
 
 @click.group()
+@click.version_option(version=version("jira-ai-cli"))
 def cli():
     """LLM-Assisted Jira CLI"""
     pass
@@ -26,10 +28,19 @@ def config():
     jira_username = click.prompt("Jira Username (email)", default=existing_config.get("JIRA_USERNAME"))
     jira_api_token = click.prompt("Jira API Token", default=existing_config.get("JIRA_API_TOKEN"), hide_input=True)
 
-    click.echo("\n--- GitHub Configuration ---")
-    github_owner = click.prompt("GitHub Repository Owner (organization or user)", default=existing_config.get("GITHUB_OWNER"))
-    github_repo = click.prompt("GitHub Repository Name", default=existing_config.get("GITHUB_REPO"))
-    github_token = click.prompt("GitHub Personal Access Token", default=existing_config.get("GITHUB_TOKEN"), hide_input=True)
+    click.echo("\n--- GitHub Configuration (Optional) ---")
+    configure_github = click.confirm("Do you want to configure GitHub integration? (This is only required if you plan to use --pr, --commit, or --branch options)", default=False)
+
+    github_owner = None
+    github_repo = None
+    github_token = None
+
+    if configure_github:
+        github_owner = click.prompt("GitHub Repository Owner (organization or user)", default=existing_config.get("GITHUB_OWNER"))
+        github_repo = click.prompt("GitHub Repository Name", default=existing_config.get("GITHUB_REPO"))
+        github_token = click.prompt("GitHub Personal Access Token", default=existing_config.get("GITHUB_TOKEN"), hide_input=True)
+    else:
+        click.echo("Skipping GitHub configuration.")
 
     new_config = {
         "JIRA_SERVER": jira_server,
