@@ -1,6 +1,6 @@
 [project]
 name = "jira-ai-cli"
-version = "0.1.0"
+version = "1.0.3"
 description = "LLM-Assisted Jira CLI"
 dependencies = [
     "click",
@@ -14,7 +14,7 @@ dependencies = [
 jira-cli = "jira_ai_cli.cli:cli"
 
 [project.optional-dependencies]
-dev = ["pytest", "pyinstaller"]
+dev = ["pyinstaller"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
