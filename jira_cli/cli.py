@@ -18,7 +18,7 @@ def cli():
 @cli.command()
 def config():
     """
-    Guides the user through setting up the required configurations for Jira and GitHub.
+    Guides the user through setting up the required configurations for Jira, GitHub, and LLM.
     """
     config_manager = ConfigManager()
     existing_config = config_manager.load_config()
@@ -42,6 +42,32 @@ def config():
     else:
         click.echo("Skipping GitHub configuration.")
 
+    click.echo("\n--- LLM Configuration ---")
+    llm_provider = click.prompt(
+        "LLM Provider",
+        type=click.Choice(['gemini-cli', 'openai', 'anthropic', 'gemini', 'custom-cli'], case_sensitive=False),
+        default=existing_config.get("LLM_PROVIDER", "gemini-cli")
+    )
+
+    llm_model = None
+    llm_api_key = None
+    llm_custom_command = None
+
+    if llm_provider == 'gemini-cli':
+        click.echo("Using the local 'gemini' CLI tool.")
+    elif llm_provider == 'custom-cli':
+        llm_custom_command = click.prompt("Custom CLI Command (use {prompt} as placeholder)", default=existing_config.get("LLM_CUSTOM_COMMAND", "echo '{prompt}'"))
+    else:
+        # For openai, anthropic, gemini (via API)
+        default_model = {
+            'openai': 'gpt-4o',
+            'anthropic': 'claude-3-5-sonnet-20240620',
+            'gemini': 'gemini-1.5-pro'
+        }.get(llm_provider)
+        
+        llm_model = click.prompt(f"{llm_provider.capitalize()} Model", default=existing_config.get("LLM_MODEL", default_model))
+        llm_api_key = click.prompt(f"{llm_provider.capitalize()} API Key", default=existing_config.get("LLM_API_KEY"), hide_input=True)
+
     new_config = {
         "JIRA_SERVER": jira_server,
         "JIRA_USERNAME": jira_username,
@@ -49,6 +75,10 @@ def config():
         "GITHUB_OWNER": github_owner,
         "GITHUB_REPO": github_repo,
         "GITHUB_TOKEN": github_token,
+        "LLM_PROVIDER": llm_provider,
+        "LLM_MODEL": llm_model,
+        "LLM_API_KEY": llm_api_key,
+        "LLM_CUSTOM_COMMAND": llm_custom_command
     }
     
     config_manager.save_config(new_config)

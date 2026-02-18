@@ -1,4 +1,4 @@
-class AiJiraCli < Formula
+class JiraCli < Formula
   desc "LLM-Assisted Jira CLI"
   homepage "https://github.com/knightmare-26/jira-cli"
   url "https://github.com/knightmare-26/jira-cli/archive/refs/tags/v1.0.3.tar.gz"
@@ -10,11 +10,11 @@ class AiJiraCli < Formula
     # Assuming your project is a Python package installable via pip
     # and has a 'jira-ai-cli' script in its entrypoints
     system "pip3", "install", *std_pip_args, "."
-    bin.install "jira-ai-cli" => "ai-jira-cli"
+    bin.install "jira-cli" => "jira-cli"
   end
 
   test do
     # Basic test to ensure the CLI runs and shows help
-    assert_match "Usage:", shell_output("#{bin}/ai-jira-cli --help")
+    assert_match "Usage:", shell_output("#{bin}/jira-cli --help")
   end
 end

@@ -1,5 +1,5 @@
 [project]
-name = "jira-ai-cli"
+name = "jira-cli"
 version = "1.0.3"
 description = "LLM-Assisted Jira CLI"
 dependencies = [
@@ -8,10 +8,14 @@ dependencies = [
     "jira",
     "PyYAML",
     "halo",
+    "litellm",
 ]
 
+[tool.setuptools]
+packages = ["jira_cli"]
+
 [project.scripts]
-jira-cli = "jira_ai_cli.cli:cli"
+jira-cli = "jira_cli.cli:cli"
 
 [project.optional-dependencies]
 dev = ["pyinstaller"]
