@@ -18,11 +18,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            asset_name: Aera-Jira-CLI-linux
+            asset_name: AI-Jira-CLI-linux
           - os: macos-latest
-            asset_name: Aera-Jira-CLI-macos
+            asset_name: AI-Jira-CLI-macos
           - os: windows-latest
-            asset_name: Aera-Jira-CLI-windows.exe
+            asset_name: AI-Jira-CLI-windows.exe
 
     steps:
     - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
         pip install .[dev]
 
     - name: Build executable with PyInstaller
-      run: pyinstaller --name ${{ matrix.asset_name }} --onefile jira_ai_cli/cli.py
+      run: pyinstaller --name ${{ matrix.asset_name }} --onefile jira_cli/cli.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -75,8 +75,8 @@ jobs:
         context: .
         push: true
         tags: |
-          ghcr.io/${{ github.repository_owner }}/aera-jira-cli:latest
-          ghcr.io/${{ github.repository_owner }}/aera-jira-cli:${{ steps.get_version.outputs.VERSION }}
+          ghcr.io/${{ github.repository_owner }}/ai-jira-cli:latest
+          ghcr.io/${{ github.repository_owner }}/ai-jira-cli:${{ steps.get_version.outputs.VERSION }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 

@@ -72,7 +72,7 @@ class ActionOrchestrator:
             llm_prompt_data["github_context"] = github_context
             
         llm_prompt = json.dumps(llm_prompt_data)
-        llm_suggestions = self.llm_integrator.call_gemini(llm_prompt)
+        llm_suggestions = self.llm_integrator.call_llm(llm_prompt)
 
         if not llm_suggestions or not llm_suggestions.get("actions"):
             self.anim.fail("LLM did not provide any suggestions.")

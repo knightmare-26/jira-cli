@@ -1,6 +1,6 @@
-# AI Jira AI CLI
+# Jira CLI
 
-The AI Jira AI CLI is a powerful command-line interface designed to streamline Jira workflow management through AI assistance. It integrates seamlessly with GitHub to automate tasks and provide intelligent suggestions, enhancing developer productivity.
+The Jira CLI is a powerful command-line interface designed to streamline Jira workflow management through AI assistance. It integrates seamlessly with GitHub to automate tasks and provide intelligent suggestions, enhancing developer productivity.
 
 ## Key Features
 
@@ -10,7 +10,7 @@ The AI Jira AI CLI is a powerful command-line interface designed to streamline J
 
 ## Prerequisites
 
-To effectively utilize the AI Jira AI CLI, the following external tools must be installed and accessible on your system:
+To effectively utilize the Jira CLI, the following external tools must be installed and accessible on your system:
 
 -   **Terminal Access**: A command-line interpreter (e.g., PowerShell, Command Prompt on Windows; Terminal on macOS/Linux).
 -   **Git**: A version control system essential for repository operations. Download Git from [git-scm.com/downloads](https://git-scm.com/downloads).
@@ -19,7 +19,7 @@ To effectively utilize the AI Jira AI CLI, the following external tools must be 
 
 ## Installation
 
-The AI Jira AI CLI offers two primary installation methods:
+The Jira CLI offers two primary installation methods:
 
 ### A. Binary Installation (Recommended)
 
@@ -30,16 +30,16 @@ This method provides a standalone executable, eliminating the need for Python or
 
     *   **From GitHub Releases Page (Recommended for most users):**
         This page facilitates the selection of the correct executable for your operating system (Linux, macOS, or Windows) and provides associated release information.
-        *   **Linux:** `AI-Jira-CLI-linux`
-        *   **macOS:** `AI-Jira-CLI-macos`
-        *   **Windows:** `AI-Jira-CLI-windows.exe`
+        *   **Linux:** `Jira-CLI-linux`
+        *   **macOS:** `Jira-CLI-macos`
+        *   **Windows:** `Jira-CLI-windows.exe`
 
     *   **Directly from Terminal (Requires `curl` and `jq`):**
         This command will attempt to download the latest binary for your current operating system.
         \`\`\`bash
         REPO_OWNER="knightmare-26"
         REPO_NAME="jira-cli"
-        CLI_NAME="AI-Jira-CLI"
+        CLI_NAME="Jira-CLI"
         ASSET_PATTERN=""
 
         OS_TYPE="$(uname -s)"
@@ -70,31 +70,31 @@ This method provides a standalone executable, eliminating the need for Python or
 
 
 2.  **Add to System PATH:**
-    Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location. This step is recommended for convenience, allowing you to run the `AI-Jira-CLI` command without specifying its full path every time.
+    Relocate the downloaded executable to a directory included in your system's `PATH` environment variable. This enables execution of the CLI from any terminal location. This step is recommended for convenience, allowing you to run the `Jira-CLI` command without specifying its full path every time.
     *   **Typical locations:** `/usr/local/bin` (Linux/macOS) or a designated `bin` directory (Windows).
 
 3.  **Set Executable Permissions (Linux/macOS only):**
     Execute the following command in your terminal to grant execution privileges:
     ```bash
-    chmod +x /path/to/AI-Jira-CLI-macos # or -linux
+    chmod +x /path/to/Jira-CLI-macos # or -linux
     ```
 
 ### B. Homebrew Installation (macOS & Linux)
 
-For macOS and Linux users, the AI Jira AI CLI can be easily installed and managed using Homebrew.
+For macOS and Linux users, the Jira CLI can be easily installed and managed using Homebrew.
 
 1.  **Tap the Repository (if not already tapped):**
     First, you need to tap the repository containing the formula:
     ```bash
-    brew tap knightmare-26/ai-jira-cli
+    brew tap knightmare-26/jira-cli
     ```
 
 2.  **Install the CLI:**
     Once the tap is added, you can install the CLI:
     ```bash
-    brew install ai-jira-cli
+    brew install jira-cli
     ```
-    This will install the `ai-jira-cli` executable to your Homebrew prefix (usually `/usr/local/bin` or `/opt/homebrew/bin`), making it available in your PATH.
+    This will install the `jira-cli` executable to your Homebrew prefix (usually `/usr/local/bin` or `/opt/homebrew/bin`), making it available in your PATH.
 
 ### C. Source Installation
 
@@ -122,16 +122,16 @@ For a containerized and reproducible environment, you can use Docker.
 
 1.  **Pull the Docker Image:**
     ```bash
-    docker pull ghcr.io/knightmare-26/ai-jira-cli:latest
+    docker pull ghcr.io/knightmare-26/jira-cli:latest
     ```
 2.  **Create an Alias for Easy Usage:**
     Add the following alias to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.profile`) and then reload your shell configuration (e.g., `source ~/.zshrc`). This allows you to use `Aera-Jira-CLI` like a native command.
     ```bash
-    alias AI-Jira-CLI='docker run --rm -it \
+    alias Jira-CLI='docker run --rm -it \
       -v ~/.jira-cli:/config \
       -v "$(pwd)":/work \
       -e CI \
-      ghcr.io/knightmare-26/ai-jira-cli:latest'
+      ghcr.io/knightmare-26/jira-cli:latest'
     ```
     *   `-v ~/.jira-cli:/config`: Mounts your local `~/.jira-cli` directory into the container to persist your configuration across runs.
     *   `-v "$(pwd)":/work`: Mounts your current working directory into the container, allowing the CLI to access local files if needed.
@@ -143,7 +143,7 @@ To establish connectivity with Jira and, optionally, GitHub, the CLI requires sp
 
 1.  **Initiate Configuration:**
     ```bash
-    AI-Jira-CLI config
+    Jira-CLI config
     ```
     *For source installations, utilize `jira-cli config`. If using the Docker alias, the command is the same as binary installation.*
 
@@ -160,14 +160,14 @@ To establish connectivity with Jira and, optionally, GitHub, the CLI requires sp
 
 ## Usage
 
-Upon successful installation and configuration, the AI Jira AI CLI is ready for use.
+Upon successful installation and configuration, the Jira CLI is ready for use.
 
 **Example: Suggest Jira Actions for a Pull Request**
 
 To obtain AI-driven suggestions for a GitHub pull request (e.g., PR #123), you must have GitHub integration configured.
 
 ```bash
-AI-Jira-CLI suggest --pr 123
+Jira-CLI suggest --pr 123
 ```
 *For source installations, utilize `jira-cli suggest --pr 123`. If using the Docker alias, the command is the same as binary installation.*
 
@@ -179,10 +179,10 @@ Suggestions can also be generated for specific commits or branches (requires Git
 
 ```bash
 # Suggestions for a commit
-AI-Jira-CLI suggest --commit <commit_sha>
+Jira-CLI suggest --commit <commit_sha>
 
 # Suggestions for a branch
-AI-Jira-CLI suggest --branch <branch_name>
+Jira-CLI suggest --branch <branch_name>
 ```
 
 ---
