@@ -39,7 +39,7 @@ jobs:
         pip install .[dev]
 
     - name: Build executable with PyInstaller
-      run: pyinstaller --name ${{ matrix.asset_name }} --onefile jira_ai_cli/cli.py
+      run: pyinstaller --name ${{ matrix.asset_name }} --onefile jira_cli/cli.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
