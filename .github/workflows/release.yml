@@ -22,7 +22,7 @@ jobs:
           - os: macos-latest
             asset_name: AI-Jira-CLI-macos
           - os: windows-latest
-            asset_name: AI-Jira-CLI-windows.exe
+            asset_name: AI-Jira-CLI-windows
 
     steps:
     - name: Checkout code
@@ -39,13 +39,13 @@ jobs:
         pip install .[dev]
 
     - name: Build executable with PyInstaller
-      run: pyinstaller --name ${{ matrix.asset_name }} --onefile jira_cli/cli.py
+      run: pyinstaller --name ${{ matrix.asset_name }} --onefile --collect-all litellm jira_cli/cli.py
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.asset_name }}
-        path: dist/${{ matrix.asset_name }}
+        path: dist/${{ matrix.asset_name }}*
 
   build_and_push_docker:
     name: Build & Push Docker Image
